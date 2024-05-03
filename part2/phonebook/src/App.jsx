@@ -3,12 +3,15 @@ import Filter from "./Components/Filter";
 import Form from "./Components/Form";
 import Phonebook from "./Components/Phonebook";
 import phoneServices from "./services/phonebook";
+import Success from "./Components/Success";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [filter, setFilter] = useState("");
+  const [successMessage, setSuccess] = useState(null);
+  const [errorMessage, setError] = useState(null);
 
   useEffect(() => {
     phoneServices.getAll().then((response) => {
@@ -49,18 +52,30 @@ const App = () => {
           .updateContact(redundantPerson.id, newPerson)
           .then((response) => {
             console.log(response);
-          });
-        setPersons(
-          persons.map((person) => {
-            if (person.name.toLowerCase() == newName.toLowerCase()) {
-              return newPerson;
-            } else {
-              return person;
-            }
+            setPersons(
+              persons.map((person) => {
+                if (person.name.toLowerCase() == newName.toLowerCase()) {
+                  return newPerson;
+                } else {
+                  return person;
+                }
+              })
+            );
+            setSuccess("Number changed successfully");
+            setNewName("");
+            setNewPhone("");
+            setTimeout(() => {
+              setSuccess(null);
+            }, 5000);
           })
-        );
-        setNewName("");
-        setNewPhone("");
+          .catch((error) => {
+            setError(
+              `Information of "${newName}" already removed from the server`
+            );
+            setTimeout(() => {
+              setError(null);
+            }, 5000);
+          });
       }
     } else {
       const newContact = {
@@ -70,9 +85,12 @@ const App = () => {
       phoneServices.addContact(newContact).then((response) => {
         setPersons(persons.concat(response.data));
       });
-
+      setSuccess("Contact added successfully");
       setNewName("");
       setNewPhone("");
+      setTimeout(() => {
+        setSuccess(null);
+      }, 5000);
     }
   };
 
@@ -85,6 +103,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Success message={successMessage} />
       <Filter filter={filter} filterHandler={setFilter} />
       <h3>Add new contact</h3>
       <Form
