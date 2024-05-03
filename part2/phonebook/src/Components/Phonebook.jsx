@@ -1,13 +1,10 @@
 import React from "react";
 
-const Phonebook = ({ personToShow }) => {
+const Phonebook = ({ person, deleteHandler }) => {
   return (
     <div>
-      {personToShow.map((person) => (
-        <div key={person.id}>
-          {person.name} {person.number}
-        </div>
-      ))}
+      {person.name} {person.number}
+      <button onClick={deleteHandler}>Delete</button>
     </div>
   );
 };

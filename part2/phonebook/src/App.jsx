@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Filter from "./Components/Filter";
 import Form from "./Components/Form";
 import Phonebook from "./Components/Phonebook";
-import axios from "axios";
+import phoneServices from "./services/phonebook";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -11,25 +11,66 @@ const App = () => {
   const [filter, setFilter] = useState("");
 
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((response) => {
+    phoneServices.getAll().then((response) => {
       setPersons(response.data);
     });
   }, []);
 
-  const nameArray = persons.map((person) => person.name);
+  const deleteHandler = (id) => {
+    if (window.confirm("Are u sure u want to delete the contact")) {
+      phoneServices.deleteContact(id).then((response) => {
+        console.log(response);
+      });
+      setPersons(persons.filter((person) => person.id != id));
+    }
+  };
+
+  const nameArray = persons.map((person) => person.name.toLowerCase());
 
   const submitHandler = (e) => {
     e.preventDefault();
-    if (nameArray.includes(newName)) {
-      alert(`The name "${newName}" is already in the phonebook. Cannot add`);
-    } else {
-      setPersons(
-        persons.concat({
+    if (nameArray.includes(newName.toLowerCase())) {
+      if (
+        window.confirm(
+          `${newName} already exists in the phonebook. Do you want to replace the previous number?`
+        )
+      ) {
+        const redundantPerson = persons.find(
+          (person) => person.name.toLowerCase() === newName.toLowerCase()
+        );
+        console.log(redundantPerson);
+        const newPerson = {
+          id: redundantPerson.id,
           name: newName,
           number: newPhone,
-          id: persons.length + 1,
-        })
-      );
+        };
+
+        phoneServices
+          .updateContact(redundantPerson.id, newPerson)
+          .then((response) => {
+            console.log(response);
+          });
+        setPersons(
+          persons.map((person) => {
+            if (person.name.toLowerCase() == newName.toLowerCase()) {
+              return newPerson;
+            } else {
+              return person;
+            }
+          })
+        );
+        setNewName("");
+        setNewPhone("");
+      }
+    } else {
+      const newContact = {
+        name: newName,
+        number: newPhone,
+      };
+      phoneServices.addContact(newContact).then((response) => {
+        setPersons(persons.concat(response.data));
+      });
+
       setNewName("");
       setNewPhone("");
     }
@@ -41,7 +82,6 @@ const App = () => {
       : persons.filter((person) =>
           person.name.toLowerCase().includes(filter.toLowerCase())
         );
-
   return (
     <div>
       <h2>Phonebook</h2>
@@ -55,7 +95,13 @@ const App = () => {
         setNewPhone={setNewPhone}
       />
       <h2>Numbers</h2>
-      <Phonebook personToShow={personToShow} />
+      {personToShow.map((person) => (
+        <Phonebook
+          person={person}
+          deleteHandler={() => deleteHandler(person.id)}
+          key={person.id}
+        />
+      ))}
     </div>
   );
 };
