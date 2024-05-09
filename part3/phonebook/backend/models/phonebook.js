@@ -30,14 +30,8 @@ const phoneSchema = {
 //   transform: (document, returnedObject) => {
 //     returnedObject.id = returnedObject._id.toString();
 //     delete returnedObject._id;
-//     delete returnedObject._v;
+//     delete returnedObject.__v;
 //   },
 // });
 
 module.exports = mongoose.model("Contact", phoneSchema);
-
-// const contact = new Contact({ name: name, number: number });
-// contact.save().then((result) => {
-//   console.log(`Added ${name} number ${number} to phonebook`);
-//   mongoose.connection.close();
-// });

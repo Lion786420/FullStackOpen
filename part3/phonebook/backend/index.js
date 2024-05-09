@@ -2,10 +2,11 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
-const Contact = require("./models/phonebook");
+
 require("dotenv").config();
 
 app.use(cors());
+const Contact = require("./models/phonebook");
 app.use(express.static("dist"));
 app.use(express.json());
 
@@ -44,17 +45,14 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const searchedId = Number(request.params.id);
-  const searchedPerson = persons.filter((person) => person.id === searchedId);
-  if (searchedPerson.length != 0) {
-    response.json(searchedPerson);
-  } else {
-    response.status(404).end();
-  }
+  const id = request.params.id;
+  Contact.findById(id).then((contact) => {
+    response.json(contact);
+  });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  const searchedId = Number(request.params.id);
+  const searchedId = request.params.id;
   persons = persons.filter((person) => person.id !== searchedId);
   console.log(persons);
   response.status(202).end();
@@ -69,26 +67,17 @@ app.get("/info", (request, response) => {
 app.use(
   morgan(":method :postLog :status :res[content-length] - :response-time ms")
 );
+
 app.post("/api/persons", (request, response) => {
   const newPerson = request.body;
-  if (newPerson.name && newPerson.number) {
-    const nameFilter = persons.filter(
-      (person) => person.name.toLowerCase() == newPerson.name.toLowerCase()
-    );
-    if (nameFilter.length > 0) {
-      response.status(200).send({ error: "Name must be unique" });
-    } else {
-      const newContact = {
-        id: Math.ceil(Math.random() * 5000),
-        name: newPerson.name,
-        number: newPerson.number,
-      };
-      persons = persons.concat(newContact);
-      response.send(newContact);
-    }
-  } else {
-    response.status(404).send({ error: "Name or number missing" });
-  }
+  const contact = new Contact({
+    name: newPerson.name,
+    number: newPerson.number,
+  });
+  contact.save().then((result) => {
+    console.log("Person added to phonebook");
+    response.send(result);
+  });
 });
 
 const PORT = process.env.PORT || 3001;
