@@ -98,6 +98,21 @@ app.post("/api/persons", (request, response, next) => {
     });
 });
 
+app.put("/api/persons/:id", (request, response, next) => {
+  const body = request.body;
+  const contact = {
+    name: body.name,
+    number: body.number,
+  };
+  Contact.findByIdAndUpdate(request.params.id, contact, { new: true })
+    .then((result) => {
+      console.log(result);
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
 const errorHandler = (error, request, response, next) => {
   console.error(error.message);
 
