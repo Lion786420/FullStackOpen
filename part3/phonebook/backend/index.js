@@ -38,27 +38,40 @@ app.use(morgan("tiny"));
 //   },
 // ];
 
-app.get("/api/persons", (request, response) => {
-  Contact.find({}).then((result) => {
-    response.json(result);
-  });
+app.get("/api/persons", (request, response, next) => {
+  Contact.find({})
+    .then((result) => {
+      response.json(result);
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
 
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
   const id = request.params.id;
-  Contact.findById(id).then((contact) => {
-    response.json(contact);
-  });
+  Contact.findById(id)
+    .then((contact) => {
+      response.json(contact);
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
 
-app.delete("/api/persons/:id", (request, response) => {
+app.delete("/api/persons/:id", (request, response, next) => {
   const searchedId = request.params.id;
-  persons = persons.filter((person) => person.id !== searchedId);
-  console.log(persons);
-  response.status(202).end();
+  console.log(searchedId);
+  Contact.findByIdAndDelete(searchedId)
+    .then((result) => {
+      response.status(202).end();
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
 
-app.get("/info", (request, response) => {
+app.get("/info", (request, response, next) => {
   response.send(
     `<p>Phonebook has info for ${persons.length} people</p><p>${Date()}</p>`
   );
@@ -68,17 +81,34 @@ app.use(
   morgan(":method :postLog :status :res[content-length] - :response-time ms")
 );
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const newPerson = request.body;
   const contact = new Contact({
     name: newPerson.name,
     number: newPerson.number,
   });
-  contact.save().then((result) => {
-    console.log("Person added to phonebook");
-    response.send(result);
-  });
+  contact
+    .save()
+    .then((result) => {
+      console.log("Person added to phonebook");
+      response.send(result);
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT);
