@@ -71,12 +71,6 @@ app.delete("/api/persons/:id", (request, response, next) => {
     });
 });
 
-app.get("/info", (request, response, next) => {
-  response.send(
-    `<p>Phonebook has info for ${persons.length} people</p><p>${Date()}</p>`
-  );
-});
-
 app.use(
   morgan(":method :postLog :status :res[content-length] - :response-time ms")
 );
