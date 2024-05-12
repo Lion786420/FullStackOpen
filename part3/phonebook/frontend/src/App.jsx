@@ -4,6 +4,7 @@ import Form from "./Components/Form";
 import Phonebook from "./Components/Phonebook";
 import phoneServices from "./services/phonebook";
 import Success from "./Components/Success";
+import Error from "./Components/Error";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -82,15 +83,23 @@ const App = () => {
         name: newName,
         number: newPhone,
       };
-      phoneServices.addContact(newContact).then((response) => {
-        setPersons(persons.concat(response.data));
-      });
-      setSuccess("Contact added successfully");
-      setNewName("");
-      setNewPhone("");
-      setTimeout(() => {
-        setSuccess(null);
-      }, 5000);
+      phoneServices
+        .addContact(newContact)
+        .then((response) => {
+          setPersons(persons.concat(response.data));
+          setSuccess("Contact added successfully");
+          setNewName("");
+          setNewPhone("");
+          setTimeout(() => {
+            setSuccess(null);
+          }, 5000);
+        })
+        .catch((error) => {
+          setError(error.response.data.error);
+          setTimeout(() => {
+            setError(null);
+          }, 5000);
+        });
     }
   };
 
@@ -104,6 +113,7 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
       <Success message={successMessage} />
+      <Error message={errorMessage} />
       <Filter filter={filter} filterHandler={setFilter} />
       <h3>Add new contact</h3>
       <Form
