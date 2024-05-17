@@ -40,6 +40,37 @@ test("Unique identifier is named id", async () => {
   assert.strictEqual(response.body[0].id, response2[0]._id.toString());
 });
 
+test("Post request adds a new blog to the database", async () => {
+  const blog = new Blog({
+    title: "Post request does work",
+    author: "John Doe",
+    url: "http://www.u.california.edu/~justin/copyright_violations/Go_To_Considered_Harmful.html",
+    likes: 9,
+  });
+  await blog.save();
+  const response = await api.get("/api/blogs");
+  assert.strictEqual(testData.length + 1, response.body.length);
+});
+
+test("If like property is missing, put 0", async () => {
+  const blog = {
+    title: "Post request does work",
+    author: "John Doe",
+    url: "http://www.u.california.edu/~justin/copyright_violations/Go_To_Considered_Harmful.html",
+  };
+  const response = await api.post("/api/blogs").send(blog);
+  assert.strictEqual(0, response.body.likes);
+});
+
+test("No title or url responds with 404 status", async () => {
+  const blog = {
+    author: "John Doe",
+    url: "http://www.u.california.edu/~justin/copyright_violations/Go_To_Considered_Harmful.html",
+  };
+  const response = await api.post("/api/blogs").send(blog);
+  assert.strictEqual(response.status, 404);
+});
+
 after(async () => {
   await mongoose.connection.close();
 });
