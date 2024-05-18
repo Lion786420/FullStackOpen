@@ -71,6 +71,29 @@ test("No title or url responds with 404 status", async () => {
   assert.strictEqual(response.status, 404);
 });
 
+test("Blog can be deleted by sending delete request to its endpoint", async () => {
+  const blogs = await api.get("/api/blogs");
+  let deleteId = blogs.body[0].id;
+  await api.delete(`/api/blogs/${deleteId}`);
+  const modifiedArray = await api.get("/api/blogs");
+  console.log(modifiedArray);
+  assert.strictEqual(modifiedArray.body.length, testData.length - 1);
+});
+
+test("The information of a blog can be updated with put request", async () => {
+  let blogs = await api.get("/api/blogs");
+  let updateId = blogs.body[0].id;
+  const blog = {
+    title: "Updating the blog",
+    author: "John Doe",
+    url: "http://www.u.california.edu/~justin/copyright_violations/Go_To_Considered_Harmful.html",
+    likes: 19,
+  };
+  const updatedBlog = await api.put(`/api/blogs/${updateId}`).send(blog);
+  blogs = await api.get("/api/blogs");
+  assert.strictEqual(19, blogs.body[0].likes);
+});
+
 after(async () => {
   await mongoose.connection.close();
 });
