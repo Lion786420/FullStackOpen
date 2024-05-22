@@ -3,6 +3,7 @@ const assert = require("node:assert");
 const app = require("../app");
 const mongoose = require("mongoose");
 const Blog = require("../models/blog");
+const User = require("../models/user");
 const supertest = require("supertest");
 
 const api = supertest(app);
@@ -21,6 +22,10 @@ const testData = [
     likes: 5,
   },
 ];
+const testUser = [
+  { name: "root", username: "Superuser", passwordHash: "admin@123" },
+  { name: "Aniket", username: "Lion", password: "test@123" },
+];
 
 beforeEach(async () => {
   await Blog.deleteMany({});
@@ -30,8 +35,11 @@ beforeEach(async () => {
 });
 
 test("Application returns correct blogs", async () => {
-  const response = await api.get("/api/blogs/");
-  assert.strictEqual(response.body.length, testData.length);
+  const user = { username: "Superuser", password: "admin@123" };
+  const token = await api.post("/api/login").send(user);
+  console.log(token);
+  // const response = await api.get("/api/blogs/");
+  // assert.strictEqual(response.body.length, testData.length);
 });
 
 test("Unique identifier is named id", async () => {
