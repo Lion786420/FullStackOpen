@@ -1,36 +1,87 @@
-const { test, beforeEach, after } = require("node:test");
-const assert = require("node:assert");
-const app = require("../app");
-const mongoose = require("mongoose");
-const User = require("../models/user");
 const supertest = require("supertest");
-
+const mongoose = require("mongoose");
+const { test, describe, after, beforeEach } = require("node:test");
+const app = require("../app");
 const api = supertest(app);
+const helper = require("./test_helper");
+const assert = require("assert");
 
-const userData = [
-  { name: "Shawn", username: "Sheanic", password: "shawn@123" },
-  { name: "Sally", username: "Slyly", password: "Sally@123" },
-];
+const User = require("../models/user");
 
-beforeEach(async () => {
-  await User.deleteMany({});
-  const userArray = userData.map((data) => new User(data));
-  const saveArray = userArray.map((user) => user.save());
-  await Promise.all(saveArray);
-});
+describe("users", () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+  });
 
-test("Test invalid addition of users", async () => {
-  const initialUsers = await api.get("/api/users");
-  const newUser = {
-    name: "John",
-    username: "Jonny",
-    password: "123",
-  };
-  await api.post("/api/users").send(newUser);
-  const finalUsers = await api.get("/api/users");
-  assert.strictEqual(initialUsers.body.length, finalUsers.body.length);
-});
+  test("a valid user can be added", async () => {
+    const newUser = {
+      username: "newuser",
+      name: "New User",
+      password: "password",
+    };
 
-after(async () => {
-  mongoose.connection.close();
+    const usersAtStart = await helper.usersInDb();
+
+    const response = await api.post("/api/users").send(newUser).expect(201);
+
+    assert.strictEqual(response.body.username, newUser.username);
+    assert.strictEqual(response.body.name, newUser.name);
+
+    const usersAtEnd = await helper.usersInDb();
+
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length + 1);
+  });
+
+  test("user without username is not added", async () => {
+    const newUser = {
+      name: "New User",
+      password: "password",
+    };
+
+    const usersAtStart = await helper.usersInDb();
+
+    const result = await api.post("/api/users").send(newUser).expect(400);
+
+    const usersAtEnd = await helper.usersInDb();
+
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length);
+  });
+
+  test("user without password is not added", async () => {
+    const newUser = {
+      username: "newuser",
+      name: "New User",
+    };
+
+    const usersAtStart = await helper.usersInDb();
+
+    const result = await api.post("/api/users").send(newUser).expect(400);
+
+    const usersAtEnd = await helper.usersInDb();
+
+    assert.strictEqual(result.body.error, "password missing or too short");
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length);
+  });
+
+  test.only("same username can not be addwd twice", async () => {
+    const newUser = {
+      username: "newuser",
+      name: "New User",
+      password: "password",
+    };
+
+    await api.post("/api/users").send(newUser);
+
+    const usersAtStart = await helper.usersInDb();
+
+    await api.post("/api/users").send(newUser).expect(400);
+
+    const usersAtEnd = await helper.usersInDb();
+
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length);
+  });
+
+  after(() => {
+    mongoose.connection.close();
+  });
 });
