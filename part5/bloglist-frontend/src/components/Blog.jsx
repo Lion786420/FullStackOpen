@@ -1,7 +1,18 @@
 import { useState } from "react";
 
-const Blog = ({ blog }) => {
+const Blog = ({ blog, likeHandler }) => {
   const [show, setShow] = useState(false);
+
+  const updateLikes = () => {
+    const newBlog = {
+      title: blog.title,
+      author: blog.author,
+      url: blog.url,
+      likes: blog.likes + 1,
+      user: blog.user.id,
+    };
+    likeHandler(newBlog, blog.id);
+  };
   if (show) {
     return (
       <div className="eachBlog">
@@ -12,7 +23,7 @@ const Blog = ({ blog }) => {
         <div>{blog.url}</div>
         <div>
           {blog.likes}
-          <button>Like</button>
+          <button onClick={updateLikes}>Like</button>
         </div>
         <div>{blog.author}</div>
       </div>
