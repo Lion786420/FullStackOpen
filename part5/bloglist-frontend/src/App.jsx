@@ -113,6 +113,12 @@ const App = () => {
     setBlogs(updatedBlogList);
   };
 
+  const deleteHandler = async (blogId) => {
+    const deletedBlog = await blogService.deleteBlog(blogId);
+    const filteredBlog = blogs.filter((blog) => blog.id !== blogId);
+    filteredBlog.sort((a, b) => b.likes - a.likes);
+    setBlogs(filteredBlog);
+  };
   if (user === null) {
     return (
       <>
@@ -140,7 +146,13 @@ const App = () => {
       </Togglable>
       <br />
       {blogs.map((blog) => (
-        <Blog key={blog.id} blog={blog} likeHandler={likeHandler} />
+        <Blog
+          key={blog.id}
+          blog={blog}
+          likeHandler={likeHandler}
+          user={user}
+          deleteHandler={deleteHandler}
+        />
       ))}
     </div>
   );
