@@ -1,20 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Blog from "./components/Blog";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
 import Error from "./components/Error";
 import Success from "./components/Success";
+import Togglable from "./components/Togglable";
+import CreateBlog from "./components/CreateBlog";
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
-  const [url, setUrl] = useState("");
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const blogRef = useRef();
 
   useEffect(() => {
     const getBlogs = async () => {
@@ -61,46 +61,6 @@ const App = () => {
     </form>
   );
 
-  const addBlogForm = () => (
-    <form onSubmit={createBlogHandler}>
-      <div>Create New Blog</div>
-      <div>
-        Title
-        <input
-          type="text"
-          name="title"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-          }}
-        />
-      </div>
-      <div>
-        Author
-        <input
-          type="text"
-          name="author"
-          value={author}
-          onChange={(e) => {
-            setAuthor(e.target.value);
-          }}
-        />
-      </div>
-      <div>
-        Url
-        <input
-          type="text"
-          name="url"
-          value={url}
-          onChange={(e) => {
-            setUrl(e.target.value);
-          }}
-        />
-      </div>
-      <button type="submit">Create</button>
-    </form>
-  );
-
   const submitHandler = async (e) => {
     try {
       e.preventDefault();
@@ -125,24 +85,18 @@ const App = () => {
     setUser(null);
   };
 
-  const createBlogHandler = async (e) => {
+  const createBlogHandler = async (newBlog) => {
     try {
-      e.preventDefault();
-      const newBlog = { title, author, url };
+      blogRef.current.toggleVisibility();
       const blogAdded = await blogService.createNew(newBlog);
-      setSuccess(`User ${user.username} added new blog "${title}"`);
-      setTitle("");
-      setAuthor("");
-      setUrl("");
+      setSuccess(`User ${user.username} added new blog "${newBlog.title}"`);
       setBlogs(blogs.concat(blogAdded));
       setTimeout(() => {
         setSuccess(null);
       }, 5000);
     } catch (error) {
+      console.log(error);
       setError("Error adding new blog");
-      setTitle("");
-      setAuthor("");
-      setUrl("");
       setTimeout(() => {
         setError(null);
       }, 5000);
@@ -171,7 +125,9 @@ const App = () => {
       <Error message={error} />
       <Success message={success} />
       <br />
-      {addBlogForm()}
+      <Togglable buttonLabel="New Blog" ref={blogRef}>
+        <CreateBlog apiSubmitHandler={createBlogHandler} />
+      </Togglable>
       <br />
       {blogs.map((blog) => (
         <Blog key={blog.id} blog={blog} />
