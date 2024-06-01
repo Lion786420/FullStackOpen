@@ -15,7 +15,7 @@ const Blog = ({ blog, likeHandler, user, deleteHandler }) => {
   };
 
   const deleteBlog = () => {
-    deleteHandler(blog.id);
+    deleteHandler(blog.id, blog.title);
   };
 
   if (show) {

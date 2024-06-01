@@ -113,11 +113,13 @@ const App = () => {
     setBlogs(updatedBlogList);
   };
 
-  const deleteHandler = async (blogId) => {
-    const deletedBlog = await blogService.deleteBlog(blogId);
-    const filteredBlog = blogs.filter((blog) => blog.id !== blogId);
-    filteredBlog.sort((a, b) => b.likes - a.likes);
-    setBlogs(filteredBlog);
+  const deleteHandler = async (blogId, blogTitle) => {
+    if (window.confirm(`Do you want to delete the blog "${blogTitle}"`)) {
+      const deletedBlog = await blogService.deleteBlog(blogId);
+      const filteredBlog = blogs.filter((blog) => blog.id !== blogId);
+      filteredBlog.sort((a, b) => b.likes - a.likes);
+      setBlogs(filteredBlog);
+    }
   };
   if (user === null) {
     return (
