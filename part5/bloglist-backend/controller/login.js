@@ -11,9 +11,12 @@ loginRouter.post("/", async (request, response) => {
     user === null ? false : await bcrypt.compare(password, user.passwordHash);
 
   if (!(user && passwordCorrect)) {
-    return response.status(401).json({
-      error: "invalid username or password",
-    });
+    return response
+      .status(401)
+      .send({
+        error: "invalid username or password",
+      })
+      .end();
   }
 
   const userForToken = {
