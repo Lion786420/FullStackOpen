@@ -36,33 +36,48 @@ blogsRouter.post(
   }
 );
 
-blogsRouter.delete("/:id", async (request, response, next) => {
-  const decodedToken = jwt.verify(request.token, process.env.SECRET);
-  const user = request.user;
-  const blog = await Blog.findById(request.params.id);
-  if (decodedToken.id === user.id) {
-    await Blog.findByIdAndDelete(request.params.id);
-    response.status(204).end();
-  } else {
-    response
-      .status(400)
-      .json({ error: "Only the assigned user can delete the blog" });
+blogsRouter.delete(
+  "/:id",
+  middleware.tokenExtractor,
+  middleware.userExtractor,
+  async (request, response, next) => {
+    const decodedToken = jwt.verify(request.token, process.env.SECRET);
+    const user = request.user;
+    const blog = await Blog.findById(request.params.id);
+    if (decodedToken.id === user.id) {
+      await Blog.findByIdAndDelete(request.params.id);
+      response.status(204).end();
+    } else {
+      response
+        .status(400)
+        .json({ error: "Only the assigned user can delete the blog" });
+    }
   }
-});
+);
 
-blogsRouter.put("/:id", async (request, response, next) => {
-  const body = request.body;
-  const decodedToken = jwt.verify(request.token, process.env.SECRET);
-  const newBlog = {
-    title: body.title,
-    author: body.author,
-    url: body.url,
-    likes: body.likes,
-  };
-  const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, newBlog, {
-    new: true,
-  });
-  response.json(updatedBlog);
-});
+blogsRouter.put(
+  "/:id",
+  middleware.tokenExtractor,
+  middleware.userExtractor,
+  async (request, response, next) => {
+    const body = request.body;
+    const decodedToken = jwt.verify(request.token, process.env.SECRET);
+    const newBlog = {
+      title: body.title,
+      author: body.author,
+      url: body.url,
+      likes: body.likes,
+      user: body.user,
+    };
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      request.params.id,
+      newBlog,
+      {
+        new: true,
+      }
+    );
+    response.json(updatedBlog);
+  }
+);
 
 module.exports = blogsRouter;
