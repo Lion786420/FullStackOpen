@@ -5,6 +5,7 @@ import loginService from "./services/login";
 import Form from "./components/Form";
 import Success from "./components/Success";
 import Error from "./components/Error";
+import Togglable from "./components/Togglable.jsx";
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
@@ -109,7 +110,11 @@ const App = () => {
         <p>{user.name} logged in</p>
         <button onClick={logoutHandler}>Logout</button>
       </div>
-      <Form blogHandler={blogHandler} />
+      <br />
+      <Togglable buttonLabel="New note">
+        <Form blogHandler={blogHandler} />
+      </Togglable>
+      <br />
       {blogs.map((blog) => (
         <Blog key={blog.id} blog={blog} />
       ))}
