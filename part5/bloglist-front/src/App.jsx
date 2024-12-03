@@ -16,7 +16,9 @@ const App = () => {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    blogService.getAll().then((blogs) => setBlogs(blogs));
+    blogService
+      .getAll()
+      .then((blogs) => setBlogs(blogs.sort((a, b) => b.likes - a.likes)));
     const local = JSON.parse(localStorage.getItem("user"));
     if (local !== null) {
       setUser(local);
@@ -69,14 +71,12 @@ const App = () => {
   };
 
   const increaseLikes = async (newBlog, id) => {
-    console.log(id);
-
     blogService.setToken(user.token);
     const likedBlog = await blogService.increaseLike(newBlog, id);
     const updated = blogs.map((blog) =>
       blog.id === likedBlog.id ? likedBlog : blog
     );
-    setBlogs(updated);
+    setBlogs(updated.sort((a, b) => b.likes - a.likes));
   };
 
   if (user === null) {
