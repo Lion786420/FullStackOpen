@@ -1,5 +1,3 @@
-import React from "react";
-
 const Success = ({ message }) => {
   if (message == null) {
     return null;
