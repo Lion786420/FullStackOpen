@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const Blog = ({ blog, increaseLikes }) => {
+const Blog = ({ blog, increaseLikes, deleteHandler }) => {
   const [show, setShow] = useState(false);
   const blogStyle = {
     paddingTop: 10,
@@ -15,6 +15,7 @@ const Blog = ({ blog, increaseLikes }) => {
     delete newBlog.id;
     increaseLikes(newBlog, blog.id);
   };
+
   if (!show) {
     return (
       <div style={blogStyle}>
@@ -37,6 +38,9 @@ const Blog = ({ blog, increaseLikes }) => {
           <button onClick={likeHandler}>Like</button>
         </div>
         <div>{blog.author}</div>
+        <div>
+          <button onClick={() => deleteHandler(blog)}>Remove</button>
+        </div>
       </div>
     );
   }

@@ -79,6 +79,15 @@ const App = () => {
     setBlogs(updated.sort((a, b) => b.likes - a.likes));
   };
 
+  const deleteHandler = async (blog) => {
+    blogService.setToken(user.token);
+    if (window.confirm(`Do you want to delete blog with title ${blog.title}`)) {
+      await blogService.deleteBlog(blog.id);
+      const updatedBlogs = blogs.filter((each) => blog.id !== each.id);
+      setBlogs(updatedBlogs);
+    }
+  };
+
   if (user === null) {
     return (
       <div>
@@ -127,7 +136,12 @@ const App = () => {
       </Togglable>
       <br />
       {blogs.map((blog) => (
-        <Blog key={blog.id} blog={blog} increaseLikes={increaseLikes} />
+        <Blog
+          key={blog.id}
+          blog={blog}
+          increaseLikes={increaseLikes}
+          deleteHandler={deleteHandler}
+        />
       ))}
     </div>
   );
